@@ -4,8 +4,8 @@ import discord
 import re
 import json
 import requests
+import config
 
-BOT_TOKEN = 'NzE3NDE0NjQzMjk5MTIzMjcw.XtgIlg.I5Xy3HBnI1BPNusXuW4ZY-zFvcc'
 CARDS = 'https://kollieflower.github.io/Artifact2/json/Cards.json'
 ABILITIES = 'https://kollieflower.github.io/Artifact2/json/Abilities.json'
 
@@ -138,4 +138,4 @@ async def on_message(message):
                 #embed.set_image(url=cardArtUrl)
         await message.channel.send(embed=embed)
 
-client.run(BOT_TOKEN)
+client.run(config.BOT_TOKEN)
