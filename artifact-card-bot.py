@@ -136,6 +136,7 @@ async def on_message(message):
                 #embed.set_thumbnail(url=thumbnailUrl)
                 embed.set_thumbnail(url=cardArtUrl)
                 #embed.set_image(url=cardArtUrl)
+        await message.channel.send(embed=embed)
     elif message.content.startswith('|') and message.content.endswith('|'):
         abilityQuery = re.search(r"\|(.+)\|", message.content).group(1)
         abilitiesRequest = requests.get(ABILITIES).text
@@ -150,6 +151,11 @@ async def on_message(message):
                 abilityCD = ability['cooldown']
                 abilityImage = ability['image']
                 abilityText = ability['text']['english']
+                cardText = re.sub(r'/n', '', cardText)
+                cardText = re.sub(r'\[ATT\]', ' Attack', cardText)
+                cardText = re.sub(r'\[AR\]', ' Armour', cardText)
+                cardText = re.sub(r'\[HP\]', ' HP', cardText)
+                cardText = re.sub(r'\[\w+\]', '', cardText)     
                 colourCode = 0x2f4f4f
                 abilityArtUrl = 'https://kollieflower.github.io/Artifact2/Images/Abilities/' + abilityImage + '.jpg'
 
@@ -159,8 +165,7 @@ async def on_message(message):
                 embed.add_field(name='Ability Type', value=abilityType, inline=True)
                 embed.add_field(name='Mana', value=manaCost, inline=True)
                 embed.add_field(name='Cooldown', value=abilityCD, inline=True)
-                embed.set_thumbnail(url=abilityArtUrl)
-    
-    await message.channel.send(embed=embed)
+                embed.set_thumbnail(url=abilityArtUrl)  
+        await message.channel.send(embed=embed)
 
 client.run(config.BOT_TOKEN)
