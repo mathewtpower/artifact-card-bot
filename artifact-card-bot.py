@@ -82,7 +82,9 @@ async def on_message(message):
                                 #abilityTrigger = ability['text']['english']['TG']
                                 #abilityEffect = ability['text']['english']['ET']
                                 abilityText = ability['text']['english']
+                                abilityText = re.sub(r'/n', '', abilityText)
                                 abilityText = re.sub(r'\[\w+\]', '', abilityText)
+                                embed.add_field(name='Ability: ' + abilityName, value=abilityText, inline=False)
                     for signature in card['signature']:
                         signatureBase = int(signature.split('_')[0])
                         signatureVersion = int(signature.split('_')[1])
@@ -93,12 +95,10 @@ async def on_message(message):
                                 signatureText = signature['text']['english']
                                 signatureText = re.sub(r'/n', '', signatureText)
                                 signatureText = re.sub(r'\[\w+\]', '', signatureText)
-                    embed.add_field(name='Ability: ' + abilityName, value=abilityText, inline=False)
-                    embed.add_field(name='Signature: ' + signatureName, value=signatureText, inline=False)
+                                embed.add_field(name='Signature: ' + signatureName, value=signatureText, inline=False)
                     embed.add_field(name='Attack', value=str(attack), inline=True)
                     embed.add_field(name='Armour', value=str(armour), inline=True)
-                    embed.add_field(name='HP', value=str(hp), inline=True)
-                
+                    embed.add_field(name='HP', value=str(hp), inline=True)                
                 else:
                     cardText = card['text']['english']
                     cardText = re.sub(r'/n', '', cardText)
@@ -136,6 +136,31 @@ async def on_message(message):
                 #embed.set_thumbnail(url=thumbnailUrl)
                 embed.set_thumbnail(url=cardArtUrl)
                 #embed.set_image(url=cardArtUrl)
-        await message.channel.send(embed=embed)
+    elif message.content.startswith('|') and message.content.endswith('|'):
+        abilityQuery = re.search(r"\|(.+)\|", message.content).group(1)
+        abilitiesRequest = requests.get(ABILITIES).text
+        abilityList = json.loads(abilitiesRequest)
+        for ability in abilityList:
+            if ability['versions'][-1]['ability_name']['english'].lower() == abilityQuery.lower():
+                cardType = ability['card_type']
+                ability = ability['versions'][-1]
+                abilityName = ability['ability_name']['english']
+                abilityType = ability['ability_type']
+                manaCost = ability['cost']
+                abilityCD = ability['cooldown']
+                abilityImage = ability['image']
+                abilityText = ability['text']['english']
+                colourCode = 0x2f4f4f
+                abilityArtUrl = 'https://kollieflower.github.io/Artifact2/Images/Abilities/' + abilityImage + '.jpg'
+
+                embed = discord.Embed(title=abilityName, colour=colourCode)
+                embed.add_field(name='Type', value=cardType, inline=False)
+                embed.add_field(name='Card Text', value=abilityText, inline=False)
+                embed.add_field(name='Ability Type', value=abilityType, inline=True)
+                embed.add_field(name='Mana', value=manaCost, inline=True)
+                embed.add_field(name='Cooldown', value=abilityCD, inline=True)
+                embed.set_thumbnail(url=abilityArtUrl)
+    
+    await message.channel.send(embed=embed)
 
 client.run(config.BOT_TOKEN)
