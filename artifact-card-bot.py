@@ -56,7 +56,7 @@ async def on_message(message):
                     colour = 'Gold'
                     colourCode = 0xccac00
                 if colour == 'C':
-                    colour = 'Grey'
+                    colour = 'Colourless'
                     colourCode = 0x808080
 
                 embed = discord.Embed(title=name, colour=colourCode)
