@@ -151,11 +151,11 @@ async def on_message(message):
                 abilityCD = ability['cooldown']
                 abilityImage = ability['image']
                 abilityText = ability['text']['english']
-                cardText = re.sub(r'/n', '', cardText)
-                cardText = re.sub(r'\[ATT\]', ' Attack', cardText)
-                cardText = re.sub(r'\[AR\]', ' Armour', cardText)
-                cardText = re.sub(r'\[HP\]', ' HP', cardText)
-                cardText = re.sub(r'\[\w+\]', '', cardText)     
+                abilityText = re.sub(r'/n', '', abilityText)
+                abilityText = re.sub(r'\[ATT\]', ' Attack', abilityText)
+                abilityText = re.sub(r'\[AR\]', ' Armour', abilityText)
+                abilityText = re.sub(r'\[HP\]', ' HP', abilityText)
+                abilityText = re.sub(r'\[\w+\]', '', abilityText)     
                 colourCode = 0x2f4f4f
                 abilityArtUrl = 'https://kollieflower.github.io/Artifact2/Images/Abilities/' + abilityImage + '.jpg'
 
