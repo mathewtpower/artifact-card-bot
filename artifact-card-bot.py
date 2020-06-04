@@ -55,6 +55,9 @@ async def on_message(message):
                 if colour == 'O':
                     colour = 'Gold'
                     colourCode = 0xccac00
+                if colour == 'C':
+                    colour = 'Grey'
+                    colourCode = 0x808080
 
                 embed = discord.Embed(title=name, colour=colourCode)
                 embed.add_field(name='Type', value=colour + ' ' + cardType, inline=False)
@@ -156,7 +159,7 @@ async def on_message(message):
                 abilityText = re.sub(r'\[AR\]', ' Armour', abilityText)
                 abilityText = re.sub(r'\[HP\]', ' HP', abilityText)
                 abilityText = re.sub(r'\[\w+\]', '', abilityText)     
-                colourCode = 0x2f4f4f
+                colourCode = 0x663399
                 abilityArtUrl = 'https://kollieflower.github.io/Artifact2/Images/Abilities/' + abilityImage + '.jpg'
 
                 embed = discord.Embed(title=abilityName, colour=colourCode)
