@@ -6,13 +6,19 @@ import json
 import requests
 import config
 import keywords
+from util import colour_lookup
 
 CARDS = 'https://kollieflower.github.io/Artifact2/json/Cards.json'
 ABILITIES = 'https://kollieflower.github.io/Artifact2/json/Abilities.json'
 
 client = discord.Client()
 
-def getCardDetails(cardQuery, cards, cardType, forUnit=False):
+def getCardColour(card):
+    if(card['card_type'] != 'Item'):
+        return 'O'
+    return card['colour']
+
+def getCardDetails(cardQuery, cards, cardType, forHero=False):
     if cardType == 'card':
         for card in cards[0]:
             if card['versions'][-1]['card_name']['english'].lower() == cardQuery:
@@ -26,6 +32,11 @@ def getCardDetails(cardQuery, cards, cardType, forUnit=False):
                 if cardType != 'Hero':
                     cardText = card['text']['english']
                     cardText = cleanUpText(cardText)
+
+                colour_short = getCardColour(card)
+                colour = colour_lookup[colour_short]['name']
+                colourCode = colour_lookup[colour_short]['colourCode']
+
                 if cardType != 'Item':
                     colour = card['colour']
                 else:
@@ -241,4 +252,6 @@ async def on_message(message):
         except AttributeError:
             await message.channel.send('Could not find: ' + cardQuery)
 
-client.run(config.BOT_TOKEN)
+
+if __name__ == '__main__':
+    client.run(config.BOT_TOKEN)
