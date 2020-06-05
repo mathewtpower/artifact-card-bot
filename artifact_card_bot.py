@@ -207,4 +207,6 @@ async def on_message(message):
         except AttributeError:
             await message.channel.send('Could not find: ' + cardQuery)
 
-client.run(config.BOT_TOKEN)
+
+if __name__ == '__main__':
+    client.run(config.BOT_TOKEN)
