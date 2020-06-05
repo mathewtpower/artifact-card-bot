@@ -6,11 +6,17 @@ import json
 import requests
 import config
 import keywords
+from util import colour_lookup
 
 CARDS = 'https://kollieflower.github.io/Artifact2/json/Cards.json'
 ABILITIES = 'https://kollieflower.github.io/Artifact2/json/Abilities.json'
 
 client = discord.Client()
+
+def getCardColour(card):
+    if(card['card_type'] != 'Item'):
+        return 'O'
+    return card['colour']
 
 def getCardDetails(cardQuery, cards, cardType, forHero=False):
     if cardType == 'card':
@@ -26,30 +32,10 @@ def getCardDetails(cardQuery, cards, cardType, forHero=False):
                 if cardType != 'Hero':
                     cardText = card['text']['english']
                     cardText = cleanUpText(cardText)
-                
-                if cardType != 'Item':
-                    colour = card['colour']
-                else:
-                    colour = 'O'
-        
-                if colour == 'B':
-                    colour = 'Black'
-                    colourCode = 0x000000
-                if colour == 'U':
-                    colour = 'Blue'
-                    colourCode = 0x00008b
-                if colour == 'G':
-                    colour = 'Green'
-                    colourCode = 0x006400
-                if colour == 'R':
-                    colour = 'Red'
-                    colourCode = 0xa50000
-                if colour == 'O':
-                    colour = ''
-                    colourCode = 0xccac00
-                if colour == 'C':
-                    colour = 'Colourless'
-                    colourCode = 0x808080
+
+                colour_short = getCardColour(card)
+                colour = colour_lookup[colour_short]['name']
+                colourCode = colour_lookup[colour_short]['colourCode']
                 
                 embed = discord.Embed(title=name, colour=colourCode)
                 embed.add_field(name='Type', value=colour + ' ' + cardType, inline=False)
