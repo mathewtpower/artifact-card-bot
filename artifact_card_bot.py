@@ -18,7 +18,7 @@ def getCardColour(card):
         return 'O'
     return card['colour']
 
-def getCardDetails(cardQuery, cards, cardType, forHero=False):
+def getCardDetails(cardQuery, cards, cardType, forUnit=False):
     if cardType == 'card':
         for card in cards[0]:
             if card['versions'][-1]['card_name']['english'].lower() == cardQuery:
