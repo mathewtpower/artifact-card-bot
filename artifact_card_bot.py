@@ -5,7 +5,7 @@ import re
 import json
 import requests
 import config
-import keywords
+from keywords import keywords
 from util import colour_lookup
 
 CARDS = 'https://kollieflower.github.io/Artifact2/json/Cards.json'
@@ -52,6 +52,14 @@ def findCard(cardQuery, cards, partialMatch=False):
             #     print(cardQuery + " not in " + card['versions'][-1]['ability_name']['english'].lower())
 
 def getCardDetails(cardQuery, cards, cardType, forUnit=False):
+    if cardType == 'keyword':
+        if isinstance(cardQuery, str):
+            for keyword in keywords:
+                if keyword.lower() == cardQuery:
+                    embed = discord.Embed(title=keyword, colour=0xf8f8ff)
+                    embed.add_field(name='Definition', value=keywords[keyword])
+                    return embed
+        return None
     card = findCard(cardQuery, cards)
 
     if cardType == 'card':
@@ -264,7 +272,7 @@ async def on_message(message):
         cardQuery = re.search(r"\[(.+)\]", message.content).group(1).lower()
         cards = fetchCards()
         embed = getCardDetails(cardQuery, cards, 'card')
-        
+
         try:
             await message.channel.send(embed=embed)
         except Exception as e:
@@ -272,13 +280,14 @@ async def on_message(message):
     if message.content.startswith('|') and message.content.endswith('|'):
         cardQuery = re.search(r"\|(.+)\|", message.content).group(1).lower()
         cards = fetchCards()
-        embed = getCardDetails(cardQuery, cards, 'ability')
-    
-        if embed:
-            try:
-                await message.channel.send(embed=embed)
-            except Exception as e:
-                print(e)
+        embed = getCardDetails(cardQuery, keywords, 'keyword')
+        if not embed:
+            embed = getCardDetails(cardQuery, cards, 'ability')
+
+        try:
+            await message.channel.send(embed=embed)
+        except Exception as e:
+            print(e)
 
 
 if __name__ == '__main__':
