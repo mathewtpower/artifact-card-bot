@@ -18,51 +18,58 @@ def getCardColour(card):
         return 'O'
     return card['colour']
 
-def findCard(cardQuery, cards, partialMatch=False):
+def findCard(cardQuery, cards, cardType, partialMatch=False):
     if partialMatch == False:
-        for card in cards[0]:
-            if isinstance(cardQuery, str):
-                if card['versions'][-1]['card_name']['english'].lower() == cardQuery:
-                    return card
-                # else:
-                #     print(card['versions'][-1]['card_name']['english'].lower() + "does not match: " + cardQuery)
-            else:
-                if card['card_id'] == cardQuery:
-                    return card
-                # else:
-                #     print(card['card_id'] + " does not match: " + str(cardQuery))
-        for card in cards[1]:
-            if isinstance(cardQuery, int):
-                if card['card_id'] == cardQuery:
-                    return card
-                # else:
-                #     print("No card found with ID: " + str(cardQuery))
-        card = findCard(cardQuery, cards, True)
-        return card
-    elif partialMatch == True:
-        for card in cards[0]:
-            if cardQuery in card['versions'][-1]['card_name']['english'].lower():
-                return card
-            # else:
-            #     print(cardQuery + " not in " + card['versions'][-1]['card_name']['english'].lower())
-        for card in cards[1]:
-            if cardQuery in card['versions'][-1]['ability_name']['english'].lower():
-                return card
-            # else:
-            #     print(cardQuery + " not in " + card['versions'][-1]['ability_name']['english'].lower())
-
-def getCardDetails(cardQuery, cards, cardType, forUnit=False):
-    if cardType != 'keyword':
-        card = findCard(cardQuery, cards)
-
-    if cardType == 'keyword':
-        if isinstance(cardQuery, str):
+        if cardType == 'card':
+            for card in cards[0]:
+                if isinstance(cardQuery, str):
+                    if card['versions'][-1]['card_name']['english'].lower() == cardQuery:
+                        return card
+                    # else:
+                    #     print(card['versions'][-1]['card_name']['english'].lower() + "does not match: " + cardQuery)
+                else:
+                    if card['card_id'] == cardQuery:
+                        return card
+                    # else:
+                    #     print(card['card_id'] + " does not match: " + str(cardQuery))
+        elif cardType == 'ability':
+            for card in cards[1]:
+                if isinstance(cardQuery, int):
+                    if card['card_id'] == cardQuery:
+                        return card
+                    # else:
+                    #     print("No card found with ID: " + str(cardQuery))
+        elif cardType == 'keyword':
             for keyword in keywords:
                 if keyword.lower() == cardQuery:
-                    embed = discord.Embed(title=keyword, colour=0xf8f8ff)
-                    embed.add_field(name='Definition', value=keywords[keyword])
-                    return embed
-        return None
+                    return [keyword, keywords[keyword]]
+        card = findCard(cardQuery, cards, cardType, True)
+        return card
+    elif partialMatch == True:
+        if cardType == 'card':
+            for card in cards[0]:
+                if cardQuery in card['versions'][-1]['card_name']['english'].lower():
+                    return card
+                # else:
+                #     print(cardQuery + " not in " + card['versions'][-1]['card_name']['english'].lower())
+        elif cardType == 'ability':
+            for card in cards[1]:
+                if cardQuery in card['versions'][-1]['ability_name']['english'].lower():
+                    return card
+                # else:
+                #     print(cardQuery + " not in " + card['versions'][-1]['ability_name']['english'].lower())
+        elif cardType == 'keyword':
+            for keyword in keywords:
+                if cardQuery in keyword.lower():
+                    return [keyword, keywords[keyword]]
+
+def getCardDetails(cardQuery, cards, cardType, forUnit=False):
+    card = findCard(cardQuery, cards, cardType)
+
+    if cardType == 'keyword':
+        embed = discord.Embed(title=card[0], colour=0xf8f8ff)
+        embed.add_field(name='Definition', value=card[1])
+        return embed
     elif cardType == 'card':
         card = card['versions'][-1]
         if forUnit == False:
