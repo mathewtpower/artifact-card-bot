@@ -52,6 +52,9 @@ def findCard(cardQuery, cards, partialMatch=False):
             #     print(cardQuery + " not in " + card['versions'][-1]['ability_name']['english'].lower())
 
 def getCardDetails(cardQuery, cards, cardType, forUnit=False):
+    if cardType != 'keyword':
+        card = findCard(cardQuery, cards)
+
     if cardType == 'keyword':
         if isinstance(cardQuery, str):
             for keyword in keywords:
@@ -60,9 +63,7 @@ def getCardDetails(cardQuery, cards, cardType, forUnit=False):
                     embed.add_field(name='Definition', value=keywords[keyword])
                     return embed
         return None
-    card = findCard(cardQuery, cards)
-
-    if cardType == 'card':
+    elif cardType == 'card':
         card = card['versions'][-1]
         if forUnit == False:
             cardSet = card['set']
@@ -210,8 +211,7 @@ def getCardDetails(cardQuery, cards, cardType, forUnit=False):
                 name = card['card_name']['english']
                 cardText = card['text']['english']
                 cardText = cleanUpText(cardText)
-                return {'name': name, 'cardText': cardText}
-                                        
+                return {'name': name, 'cardText': cardText}                
     elif cardType == 'ability':
         card = card['versions'][-1]
         if forUnit == False:
@@ -270,24 +270,31 @@ async def on_message(message):
 
     if message.content.startswith('[') and message.content.endswith(']'):
         cardQuery = re.search(r"\[(.+)\]", message.content).group(1).lower()
+        cardQuery = cardQuery.split('|')
         cards = fetchCards()
-        embed = getCardDetails(cardQuery, cards, 'card')
+        if len(cardQuery) > 1:
+            cardType = cardQuery[1]
+            cardQuery = cardQuery[0]
+        else:
+            cardQuery = cardQuery[0]
+            cardType = 'card'
+        embed = getCardDetails(cardQuery, cards, cardType)
 
         try:
             await message.channel.send(embed=embed)
         except Exception as e:
             print(e)
-    if message.content.startswith('|') and message.content.endswith('|'):
-        cardQuery = re.search(r"\|(.+)\|", message.content).group(1).lower()
-        cards = fetchCards()
-        embed = getCardDetails(cardQuery, keywords, 'keyword')
-        if not embed:
-            embed = getCardDetails(cardQuery, cards, 'ability')
+    # if message.content.startswith('|') and message.content.endswith('|'):
+    #     cardQuery = re.search(r"\|(.+)\|", message.content).group(1).lower()
+    #     cards = fetchCards()
+    #     embed = getCardDetails(cardQuery, keywords, 'keyword')
+    #     if not embed:
+    #         embed = getCardDetails(cardQuery, cards, 'ability')
 
-        try:
-            await message.channel.send(embed=embed)
-        except Exception as e:
-            print(e)
+    #     try:
+    #         await message.channel.send(embed=embed)
+    #     except Exception as e:
+    #         print(e)
 
 
 if __name__ == '__main__':
