@@ -304,6 +304,10 @@ async def on_message(message):
 
     if message.content.startswith('[') and message.content.endswith(']'):
         cardQuery = re.search(r"\[(.+)\]", message.content).group(1).lower()
+        if cardQuery == 'help':
+            logger.debug('Displaying usage')
+            await message.channel.send('```To lookup a card: [cardname], [cardname|c] or [cardname|card]\nTo lookup an ability: [abilityname|a] or [abilityname|ability]\nTo lookup a keyword: [keywordname|k] or [keywordname|keyword]\nTo display this help page: [help]```')
+            return
         logger.info('Message Content contains cardQuery: ' + cardQuery)
         cardQuery = cardQuery.split('|')
         cards = fetchCards()
