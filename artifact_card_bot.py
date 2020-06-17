@@ -5,6 +5,7 @@ import re
 import json
 import requests
 import config
+import logger
 from keywords import keywords
 from util import colour_lookup
 
@@ -14,56 +15,74 @@ ABILITIES = 'https://kollieflower.github.io/Artifact2/json/Abilities.json'
 client = discord.Client()
 
 def getCardColour(card):
+    logger.debug('Getting card colour')
     if(card['card_type'] != 'Item'):
         return 'O'
     return card['colour']
 
 def findCard(cardQuery, cards, cardType, partialMatch=False):
+    logger.debug('Finding cards')
     if partialMatch == False:
         if cardType == 'card':
+            logger.info('Searching for card with exact match of query: ' + cardQuery)
             for card in cards[0]:
                 if isinstance(cardQuery, str):
                     if card['versions'][-1]['card_name']['english'].lower() == cardQuery:
+                        logger.info(card['versions'][-1]['card_name']['english'].lower() + ' matches query: ' + cardQuery + '. Returning card')
                         return card
-                    # else:
-                    #     print(card['versions'][-1]['card_name']['english'].lower() + "does not match: " + cardQuery)
+                    else:
+                        logger.debug((card['versions'][-1]['card_name']['english'].lower() + ' does not match query: ' + cardQuery))
                 else:
                     if card['card_id'] == cardQuery:
+                        logger.info(card['card_id'] + ' matches query: ' + cardQuery + '. Returning card')
                         return card
-                    # else:
-                    #     print(card['card_id'] + " does not match: " + str(cardQuery))
+                    else:
+                        logger.debug(card['card_id'] + ' does not match query: ' + str(cardQuery))
         elif cardType == 'ability':
+            logger.info('Searching for ability with exact match of query: ' + cardQuery)
             for card in cards[1]:
                 if isinstance(cardQuery, int):
                     if card['card_id'] == cardQuery:
+                        logger.info(card['card_id'] + ' matches query: ' + cardQuery + '. Returning card')
                         return card
-                    # else:
-                    #     print("No card found with ID: " + str(cardQuery))
+                    else:
+                        logger.debug(card['card_id'] + ' does not match query: ' + str(cardQuery))
         elif cardType == 'keyword':
+            logger.info('Searching for keyword with exact match of query: ' + cardQuery)
             for keyword in keywords:
                 if keyword.lower() == cardQuery:
                     return [keyword, keywords[keyword]]
+        logger.info('No entry found for query: ' + cardQuery + '. Searching for partial matches')
         card = findCard(cardQuery, cards, cardType, True)
         return card
     elif partialMatch == True:
         if cardType == 'card':
+            logger.info('Searching for card with partial match of query: ' + cardQuery)
             for card in cards[0]:
                 if cardQuery in card['versions'][-1]['card_name']['english'].lower():
+                    logger.info('Partial match found for query: ' + cardQuery + '. Returning card: ' + card['versions'][-1]['card_name']['english'].lower())
                     return card
-                # else:
-                #     print(cardQuery + " not in " + card['versions'][-1]['card_name']['english'].lower())
+                else:
+                    logger.debug('No partial match found for card query: ' + cardQuery + ' in ' + card['versions'][-1]['card_name']['english'].lower())
         elif cardType == 'ability':
+            logger.info('Searching for ability with exact partial of query: ' + cardQuery)
             for card in cards[1]:
                 if cardQuery in card['versions'][-1]['ability_name']['english'].lower():
+                    logger.info('Partial match found for ability query: ' + cardQuery + '. Returning ability: ' + card['versions'][-1]['ability_name']['english'].lower())
                     return card
-                # else:
-                #     print(cardQuery + " not in " + card['versions'][-1]['ability_name']['english'].lower())
+                else:
+                    logger.debug('No partial match found for ability query: ' + cardQuery + ' in ' + card['versions'][-1]['ability_name']['english'].lower())
         elif cardType == 'keyword':
+            logger.info('Searching for keyword with partial match of query: ' + cardQuery)
             for keyword in keywords:
                 if cardQuery in keyword.lower():
+                    logger.info('Partial match found for keyword query: ' + cardQuery + '. Returning keyword: ' + keyword.lower())
                     return [keyword, keywords[keyword]]
+                else:
+                    logger.debug('No partial match found for keyword query: ' + cardQuery)
 
 def getCardDetails(cardQuery, cards, cardType, forUnit=False):
+    logger.debug('Getting card details')
     card = findCard(cardQuery, cards, cardType)
 
     if cardType == 'keyword':
@@ -71,7 +90,11 @@ def getCardDetails(cardQuery, cards, cardType, forUnit=False):
         embed.add_field(name='Definition', value=card[1])
         return embed
     elif cardType == 'card':
-        card = card['versions'][-1]
+        try:
+            card = card['versions'][-1]
+        except TypeError as e:
+            logger.warning(e)
+            return
         if forUnit == False:
             cardSet = card['set']
             rarity = card['rarity']
@@ -248,6 +271,7 @@ def getCardDetails(cardQuery, cards, cardType, forUnit=False):
             return {'name': name, 'cardText': cardText}
 
 def fetchCards():
+    logger.debug('Fetching cards')
     cardsRequest = requests.get(CARDS).text
     cardList = json.loads(cardsRequest)
     abilitiesRequest = requests.get(ABILITIES).text
@@ -256,6 +280,7 @@ def fetchCards():
     return [cardList, abilityList]
 
 def cleanUpText(cardText):
+    logger.debug('Cleaning up card text')
     if cardText == '':
         cardText = 'This card has no text.'
     else:
@@ -268,41 +293,39 @@ def cleanUpText(cardText):
 
 @client.event
 async def on_ready():
-    print('We have logged in as {0.user}'.format(client))
+    logger.info('We have logged in as {0.user}'.format(client))
 
 @client.event
 async def on_message(message):
+    logger.debug('Receiving message')
     if message.author == client.user:
+        logger.debug('Reading our own message.')
         return
 
     if message.content.startswith('[') and message.content.endswith(']'):
         cardQuery = re.search(r"\[(.+)\]", message.content).group(1).lower()
+        logger.info('Message Content contains cardQuery: ' + cardQuery)
         cardQuery = cardQuery.split('|')
         cards = fetchCards()
         if len(cardQuery) > 1:
             cardType = cardQuery[1]
+            logger.debug('Set card type to: ' + cardType)
             cardQuery = cardQuery[0]
+            logger.debug('Set card query to: ' + cardQuery)
         else:
             cardQuery = cardQuery[0]
+            logger.debug('Set card query to: ' + cardQuery)
             cardType = 'card'
+            logger.debug('Set card type to: ' + cardType)
+        logger.info('Getting card details')
         embed = getCardDetails(cardQuery, cards, cardType)
 
         try:
             await message.channel.send(embed=embed)
         except Exception as e:
-            print(e)
-    # if message.content.startswith('|') and message.content.endswith('|'):
-    #     cardQuery = re.search(r"\|(.+)\|", message.content).group(1).lower()
-    #     cards = fetchCards()
-    #     embed = getCardDetails(cardQuery, keywords, 'keyword')
-    #     if not embed:
-    #         embed = getCardDetails(cardQuery, cards, 'ability')
-
-    #     try:
-    #         await message.channel.send(embed=embed)
-    #     except Exception as e:
-    #         print(e)
-
+            logger.error(e)
 
 if __name__ == '__main__':
+    logger = logger.get_logger(__name__, 'bot.log', 'INFO')
+    logger.info('Starting Bot')
     client.run(config.BOT_TOKEN)
