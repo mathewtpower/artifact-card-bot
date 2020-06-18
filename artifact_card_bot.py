@@ -24,31 +24,31 @@ def findCard(cardQuery, cards, cardType, partialMatch=False):
     logger.debug('Finding cards')
     if partialMatch == False:
         if cardType == 'card':
-            logger.info('Searching for card with exact match of query: ' + cardQuery)
+            logger.info('Searching for card with exact match of query: ' + str(cardQuery))
             for card in cards[0]:
                 if isinstance(cardQuery, str):
                     if card['versions'][-1]['card_name']['english'].lower() == cardQuery:
-                        logger.info(card['versions'][-1]['card_name']['english'].lower() + ' matches query: ' + cardQuery + '. Returning card')
+                        logger.info(card['versions'][-1]['card_name']['english'].lower() + ' matches query: ' + str(cardQuery) + '. Returning card')
                         return card
                     else:
-                        logger.debug((card['versions'][-1]['card_name']['english'].lower() + ' does not match query: ' + cardQuery))
+                        logger.debug(card['versions'][-1]['card_name']['english'].lower() + ' does not match query: ' + str(cardQuery))
                 else:
                     if card['card_id'] == cardQuery:
-                        logger.info(card['card_id'] + ' matches query: ' + cardQuery + '. Returning card')
+                        logger.info(str(card['card_id']) + ' matches query: ' + str(cardQuery) + '. Returning card')
                         return card
                     else:
-                        logger.debug(card['card_id'] + ' does not match query: ' + str(cardQuery))
+                        logger.debug(str(card['card_id']) + ' does not match query: ' + str(cardQuery))
         elif cardType == 'ability':
-            logger.info('Searching for ability with exact match of query: ' + cardQuery)
+            logger.info('Searching for ability with exact match of query: ' + str(cardQuery))
             for card in cards[1]:
                 if isinstance(cardQuery, int):
                     if card['card_id'] == cardQuery:
-                        logger.info(card['card_id'] + ' matches query: ' + cardQuery + '. Returning card')
+                        logger.info(str(card['card_id']) + ' matches query: ' + str(cardQuery) + '. Returning card')
                         return card
                     else:
-                        logger.debug(card['card_id'] + ' does not match query: ' + str(cardQuery))
+                        logger.debug(str(card['card_id']) + ' does not match query: ' + str(cardQuery))
         elif cardType == 'keyword':
-            logger.info('Searching for keyword with exact match of query: ' + cardQuery)
+            logger.info('Searching for keyword with exact match of query: ' + str(cardQuery))
             for keyword in keywords:
                 if keyword.lower() == cardQuery:
                     return [keyword, keywords[keyword]]
@@ -57,29 +57,29 @@ def findCard(cardQuery, cards, cardType, partialMatch=False):
         return card
     elif partialMatch == True:
         if cardType == 'card':
-            logger.info('Searching for card with partial match of query: ' + cardQuery)
+            logger.info('Searching for card with partial match of query: ' + str(cardQuery))
             for card in cards[0]:
                 if cardQuery in card['versions'][-1]['card_name']['english'].lower():
-                    logger.info('Partial match found for query: ' + cardQuery + '. Returning card: ' + card['versions'][-1]['card_name']['english'].lower())
+                    logger.info('Partial match found for query: ' + str(cardQuery) + '. Returning card: ' + card['versions'][-1]['card_name']['english'].lower())
                     return card
                 else:
-                    logger.debug('No partial match found for card query: ' + cardQuery + ' in ' + card['versions'][-1]['card_name']['english'].lower())
+                    logger.debug('No partial match found for card query: ' + str(cardQuery) + ' in ' + card['versions'][-1]['card_name']['english'].lower())
         elif cardType == 'ability':
-            logger.info('Searching for ability with exact partial of query: ' + cardQuery)
+            logger.info('Searching for ability with exact partial of query: ' + str(cardQuery))
             for card in cards[1]:
                 if cardQuery in card['versions'][-1]['ability_name']['english'].lower():
-                    logger.info('Partial match found for ability query: ' + cardQuery + '. Returning ability: ' + card['versions'][-1]['ability_name']['english'].lower())
+                    logger.info('Partial match found for ability query: ' + str(cardQuery) + '. Returning ability: ' + card['versions'][-1]['ability_name']['english'].lower())
                     return card
                 else:
-                    logger.debug('No partial match found for ability query: ' + cardQuery + ' in ' + card['versions'][-1]['ability_name']['english'].lower())
+                    logger.debug('No partial match found for ability query: ' + str(cardQuery) + ' in ' + card['versions'][-1]['ability_name']['english'].lower())
         elif cardType == 'keyword':
-            logger.info('Searching for keyword with partial match of query: ' + cardQuery)
+            logger.info('Searching for keyword with partial match of query: ' + str(cardQuery))
             for keyword in keywords:
                 if cardQuery in keyword.lower():
-                    logger.info('Partial match found for keyword query: ' + cardQuery + '. Returning keyword: ' + keyword.lower())
+                    logger.info('Partial match found for keyword query: ' + str(cardQuery) + '. Returning keyword: ' + keyword.lower())
                     return [keyword, keywords[keyword]]
                 else:
-                    logger.debug('No partial match found for keyword query: ' + cardQuery)
+                    logger.debug('No partial match found for keyword query: ' + str(cardQuery))
 
 def getCardDetails(cardQuery, cards, cardType, forUnit=False):
     logger.debug('Getting card details')
@@ -306,21 +306,28 @@ async def on_message(message):
         cardQuery = re.search(r"\[(.+)\]", message.content).group(1).lower()
         if cardQuery == 'help':
             logger.debug('Displaying usage')
-            await message.channel.send('```To lookup a card: [cardname], [cardname|c] or [cardname|card]\nTo lookup an ability: [abilityname|a] or [abilityname|ability]\nTo lookup a keyword: [keywordname|k] or [keywordname|keyword]\nTo display this help page: [help]```')
+            await message.channel.send('```To lookup a card: [cardname]\nTo lookup an ability: [abilityname|a] or [abilityname|ability]\nTo lookup a keyword: [keywordname|k] or [keywordname|keyword]\nTo display this help page: [help]```')
             return
         logger.info('Message Content contains cardQuery: ' + cardQuery)
         cardQuery = cardQuery.split('|')
         cards = fetchCards()
         if len(cardQuery) > 1:
-            cardType = cardQuery[1]
+            cardType = cardQuery[1].lower()
+            if cardType == 'keyword' or cardType == 'k':
+                cardType = 'keyword'
+            elif cardType == 'ability' or cardType == 'a':
+                cardType = 'ability'
+            else:
+                cardType = 'card'
             logger.debug('Set card type to: ' + cardType)
             cardQuery = cardQuery[0]
             logger.debug('Set card query to: ' + cardQuery)
         else:
-            cardQuery = cardQuery[0]
-            logger.debug('Set card query to: ' + cardQuery)
             cardType = 'card'
             logger.debug('Set card type to: ' + cardType)
+            cardQuery = cardQuery[0]
+            logger.debug('Set card query to: ' + cardQuery)
+
         logger.info('Getting card details')
         embed = getCardDetails(cardQuery, cards, cardType)
 
