@@ -1,5 +1,3 @@
-
-
 colour_lookup = {
     'B': {
         'name': 'Black',
